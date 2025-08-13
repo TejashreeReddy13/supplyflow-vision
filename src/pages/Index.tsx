@@ -4,6 +4,9 @@ import { SupplierTable } from "@/components/dashboard/SupplierTable";
 import { InventoryChart } from "@/components/dashboard/InventoryChart";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
+import { ForecastChart } from "@/components/dashboard/ForecastChart";
+import { BenchmarkPanel } from "@/components/dashboard/BenchmarkPanel";
+import { EnhancedInsightsPanel } from "@/components/dashboard/EnhancedInsightsPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useSupplyChainData } from "@/hooks/useSupplyChainData";
 import { FilterOptions } from "@/services/analyticsService";
@@ -13,8 +16,10 @@ import {
   AlertTriangleIcon, 
   DollarSignIcon,
   BarChart3Icon,
-  TrendingUpIcon
+  TrendingUpIcon,
+  Download
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [filters, setFilters] = useState<FilterOptions>({
@@ -28,11 +33,18 @@ const Index = () => {
     supplierMetrics, 
     kpis, 
     inventoryData, 
-    insights, 
-    loading, 
+    insights,
+    onTimeForecasts,
+    inventoryForecasts,
+    supplierForecasts,
+    forecastInsights,
+    benchmarkData,
+    loading,
+    forecastLoading,
     error,
     exportSupplierData,
-    exportInventoryData 
+    exportInventoryData,
+    exportForecastReport
   } = useSupplyChainData(filters);
 
   const handleFiltersChange = (newFilters: FilterOptions) => {
@@ -144,6 +156,46 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Forecasting Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-card-foreground">Predictive Analytics & Forecasting</h2>
+            <Button variant="outline" onClick={exportForecastReport} disabled={forecastLoading}>
+              <Download className="h-4 w-4 mr-2" />
+              Export Forecast Report
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ErrorBoundary>
+              <ForecastChart
+                title="On-Time Delivery Forecast"
+                data={onTimeForecasts}
+                loading={forecastLoading}
+                unit="%"
+                color="hsl(var(--primary))"
+              />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ForecastChart
+                title="Inventory Turnover Forecast"
+                data={inventoryForecasts}
+                loading={forecastLoading}
+                unit="x"
+                color="hsl(var(--success))"
+              />
+            </ErrorBoundary>
+          </div>
+        </div>
+
+        {/* Benchmarking Section */}
+        <ErrorBoundary>
+          <BenchmarkPanel
+            benchmarks={benchmarkData}
+            loading={forecastLoading}
+          />
+        </ErrorBoundary>
+
         {/* Supplier Performance Table */}
         <ErrorBoundary>
           <SupplierTable 
@@ -154,6 +206,15 @@ const Index = () => {
         </ErrorBoundary>
 
         {/* AI Insights Panel */}
+        <ErrorBoundary>
+          <EnhancedInsightsPanel 
+            insights={forecastInsights}
+            loading={forecastLoading}
+            onExportReport={exportForecastReport}
+          />
+        </ErrorBoundary>
+
+        {/* Legacy Insights Panel (for comparison) */}
         <ErrorBoundary>
           <InsightsPanel 
             insights={insights}
