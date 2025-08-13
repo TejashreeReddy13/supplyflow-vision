@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   AreaChart, 
   Area, 
@@ -9,31 +10,61 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import { Download } from "lucide-react";
 
-const inventoryData = [
-  { month: 'Jan', turnover: 4.2, demand: 850, stockLevel: 1200 },
-  { month: 'Feb', turnover: 3.8, demand: 920, stockLevel: 1150 },
-  { month: 'Mar', turnover: 5.1, demand: 1200, stockLevel: 980 },
-  { month: 'Apr', turnover: 4.9, demand: 1150, stockLevel: 1050 },
-  { month: 'May', turnover: 3.2, demand: 780, stockLevel: 1300 },
-  { month: 'Jun', turnover: 6.2, demand: 1450, stockLevel: 850 },
-  { month: 'Jul', turnover: 5.8, demand: 1380, stockLevel: 920 },
-  { month: 'Aug', turnover: 4.5, demand: 1100, stockLevel: 1100 },
-  { month: 'Sep', turnover: 4.8, demand: 1220, stockLevel: 1000 },
-  { month: 'Oct', turnover: 5.5, demand: 1350, stockLevel: 890 },
-  { month: 'Nov', turnover: 6.8, demand: 1580, stockLevel: 750 },
-  { month: 'Dec', turnover: 7.2, demand: 1650, stockLevel: 680 },
-];
+interface InventoryChartProps {
+  data: any[];
+  loading?: boolean;
+  onExport: () => void;
+}
 
-export const InventoryChart = () => {
+export const InventoryChart = ({ data, loading, onExport }: InventoryChartProps) => {
+  if (loading) {
+    return (
+      <Card className="animate-fade-in shadow-card">
+        <CardHeader>
+          <CardTitle>Inventory Turnover & Seasonal Demand</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-80">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-medium text-card-foreground">{`Month: ${label}`}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }} className="text-sm">
+              {`${entry.name}: ${entry.value.toLocaleString()}`}
+            </p>
+          ))}
+          <p className="text-xs text-muted-foreground mt-1">
+            Trend: {payload[0]?.value > payload[1]?.value ? "High demand period" : "Optimization opportunity"}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="animate-fade-in shadow-card">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Inventory Turnover & Seasonal Demand</CardTitle>
+        <Button variant="outline" size="sm" onClick={onExport}>
+          <Download className="h-4 w-4 mr-2" />
+          Export Data
+        </Button>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={inventoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="demandGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -54,13 +85,7 @@ export const InventoryChart = () => {
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
             />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px',
-              }}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Area
               type="monotone"
@@ -82,8 +107,8 @@ export const InventoryChart = () => {
         </ResponsiveContainer>
         <div className="mt-4 p-3 bg-muted rounded-lg">
           <p className="text-sm text-muted-foreground">
-            <strong>Key Insight:</strong> Peak demand periods (June-December) correlate with lower inventory turnover, 
-            indicating potential optimization opportunities to reduce carrying costs.
+            <strong>Key Insight:</strong> Peak demand periods (June-December) correlate with higher inventory turnover, 
+            indicating effective inventory management during seasonal fluctuations.
           </p>
         </div>
       </CardContent>

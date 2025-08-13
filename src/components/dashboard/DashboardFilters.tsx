@@ -8,8 +8,22 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, FilterIcon, RefreshCwIcon } from "lucide-react";
+import { FilterOptions } from "@/services/analyticsService";
 
-export const DashboardFilters = () => {
+interface DashboardFiltersProps {
+  filters: FilterOptions;
+  onFiltersChange: (filters: FilterOptions) => void;
+  onRefresh: () => void;
+}
+
+export const DashboardFilters = ({ filters, onFiltersChange, onRefresh }: DashboardFiltersProps) => {
+  const handleFilterChange = (key: keyof FilterOptions, value: string) => {
+    onFiltersChange({
+      ...filters,
+      [key]: value
+    });
+  };
+
   return (
     <Card className="shadow-card">
       <CardContent className="p-4">
@@ -19,20 +33,26 @@ export const DashboardFilters = () => {
             <span className="text-sm font-medium">Filters:</span>
           </div>
           
-          <Select defaultValue="all-regions">
+          <Select 
+            value={filters.region || 'all-regions'} 
+            onValueChange={(value) => handleFilterChange('region', value)}
+          >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Region" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all-regions">All Regions</SelectItem>
-              <SelectItem value="asia">Asia</SelectItem>
-              <SelectItem value="north-america">North America</SelectItem>
-              <SelectItem value="europe">Europe</SelectItem>
-              <SelectItem value="south-america">South America</SelectItem>
+              <SelectItem value="Asia">Asia</SelectItem>
+              <SelectItem value="North America">North America</SelectItem>
+              <SelectItem value="Europe">Europe</SelectItem>
+              <SelectItem value="South America">South America</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select defaultValue="all-suppliers">
+          <Select 
+            value={filters.supplier || 'all-suppliers'} 
+            onValueChange={(value) => handleFilterChange('supplier', value)}
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Supplier" />
             </SelectTrigger>
@@ -44,20 +64,26 @@ export const DashboardFilters = () => {
             </SelectContent>
           </Select>
 
-          <Select defaultValue="all-products">
+          <Select 
+            value={filters.productCategory || 'all-products'} 
+            onValueChange={(value) => handleFilterChange('productCategory', value)}
+          >
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Product Category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all-products">All Products</SelectItem>
-              <SelectItem value="electronics">Electronics</SelectItem>
-              <SelectItem value="automotive">Automotive</SelectItem>
-              <SelectItem value="industrial">Industrial</SelectItem>
-              <SelectItem value="consumer">Consumer Goods</SelectItem>
+              <SelectItem value="Electronics">Electronics</SelectItem>
+              <SelectItem value="Automotive">Automotive</SelectItem>
+              <SelectItem value="Industrial">Industrial</SelectItem>
+              <SelectItem value="Consumer">Consumer Goods</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select defaultValue="last-12-months">
+          <Select 
+            value={filters.timePeriod || 'last-12-months'} 
+            onValueChange={(value) => handleFilterChange('timePeriod', value)}
+          >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Time Period" />
             </SelectTrigger>
@@ -74,7 +100,7 @@ export const DashboardFilters = () => {
               <CalendarIcon className="h-4 w-4 mr-2" />
               Custom Date Range
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={onRefresh}>
               <RefreshCwIcon className="h-4 w-4 mr-2" />
               Refresh Data
             </Button>

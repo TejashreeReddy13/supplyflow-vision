@@ -7,7 +7,8 @@ import {
   DollarSign, 
   Package, 
   Download,
-  ExternalLink 
+  ExternalLink,
+  FileText
 } from "lucide-react";
 
 interface Insight {
@@ -19,40 +20,11 @@ interface Insight {
   priority: 'high' | 'medium' | 'low';
 }
 
-const insights: Insight[] = [
-  {
-    id: 'INS001',
-    type: 'cost-saving',
-    title: 'Optimize Q4 Inventory Levels',
-    description: 'Reduce inventory by 15% during Q4 peak season to save on carrying costs while maintaining service levels.',
-    impact: '$125K annual savings',
-    priority: 'high'
-  },
-  {
-    id: 'INS002',
-    type: 'risk',
-    title: 'Premium Components Ltd Performance Risk',
-    description: 'Supplier showing declining performance with 72% on-time delivery. Consider alternative suppliers.',
-    impact: 'Service disruption risk',
-    priority: 'high'
-  },
-  {
-    id: 'INS003',
-    type: 'efficiency',
-    title: 'Consolidate Asian Suppliers',
-    description: 'Reduce supplier base in Asia from 15 to 8 suppliers to improve management efficiency.',
-    impact: '20% procurement efficiency gain',
-    priority: 'medium'
-  },
-  {
-    id: 'INS004',
-    type: 'opportunity',
-    title: 'Seasonal Demand Forecasting',
-    description: 'Implement advanced forecasting for 40% improvement in demand prediction accuracy.',
-    impact: '$85K inventory optimization',
-    priority: 'medium'
-  }
-];
+interface InsightsPanelProps {
+  insights: Insight[];
+  loading?: boolean;
+  totalSavings?: number;
+}
 
 const typeStyles = {
   'cost-saving': 'bg-success text-success-foreground',
@@ -74,15 +46,70 @@ const typeIcons = {
   'opportunity': Package,
 };
 
-export const InsightsPanel = () => {
+export const InsightsPanel = ({ insights, loading, totalSavings = 210000 }: InsightsPanelProps) => {
+  const downloadInsightsReport = () => {
+    const reportContent = `
+Supply Chain Analytics - Insights Report
+Generated: ${new Date().toLocaleDateString()}
+
+EXECUTIVE SUMMARY
+Total Potential Savings: $${totalSavings.toLocaleString()}
+Number of Insights: ${insights.length}
+High Priority Items: ${insights.filter(i => i.priority === 'high').length}
+
+DETAILED INSIGHTS
+${insights.map((insight, index) => `
+${index + 1}. ${insight.title} (${insight.priority.toUpperCase()} PRIORITY)
+Type: ${insight.type.replace('-', ' ').toUpperCase()}
+Impact: ${insight.impact}
+Description: ${insight.description}
+`).join('\n')}
+
+RECOMMENDATIONS
+- Prioritize high-priority items for immediate action
+- Implement cost-saving measures to achieve identified savings
+- Monitor KPIs regularly to track improvement
+- Review supplier relationships quarterly
+`;
+
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'supply-chain-insights-report.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  if (loading) {
+    return (
+      <Card className="animate-fade-in shadow-card">
+        <CardHeader>
+          <CardTitle>AI-Powered Insights & Recommendations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="animate-fade-in shadow-card">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>AI-Powered Insights & Recommendations</CardTitle>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={downloadInsightsReport}>
+            <FileText className="h-4 w-4 mr-2" />
+            Download Report
+          </Button>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            Export CSV
           </Button>
           <Button size="sm" className="bg-gradient-primary">
             <ExternalLink className="h-4 w-4 mr-2" />
@@ -125,7 +152,7 @@ export const InsightsPanel = () => {
         
         <div className="mt-6 p-4 bg-gradient-primary rounded-lg text-primary-foreground">
           <h4 className="font-semibold mb-2">Total Potential Savings</h4>
-          <div className="text-2xl font-bold">$210K+ Annual</div>
+          <div className="text-2xl font-bold">${totalSavings.toLocaleString()}+ Annual</div>
           <p className="text-sm opacity-90">Based on current recommendations implementation</p>
         </div>
       </CardContent>
