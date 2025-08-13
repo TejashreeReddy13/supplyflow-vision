@@ -8,6 +8,8 @@ import { ForecastChart } from "@/components/dashboard/ForecastChart";
 import { BenchmarkPanel } from "@/components/dashboard/BenchmarkPanel";
 import { EnhancedInsightsPanel } from "@/components/dashboard/EnhancedInsightsPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GuidedTour } from "@/components/GuidedTour";
+import { useDemoMode } from "@/services/demoService";
 import { useSupplyChainData } from "@/hooks/useSupplyChainData";
 import { FilterOptions } from "@/services/analyticsService";
 import { 
@@ -17,9 +19,17 @@ import {
   DollarSignIcon,
   BarChart3Icon,
   TrendingUpIcon,
-  Download
+  Download,
+  Play,
+  Square,
+  HelpCircle,
+  Share2,
+  RotateCcw,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [filters, setFilters] = useState<FilterOptions>({
@@ -28,6 +38,16 @@ const Index = () => {
     productCategory: 'all-products',
     timePeriod: 'last-12-months'
   });
+
+  const [showTour, setShowTour] = useState(false);
+  const { 
+    isActive: isDemoActive, 
+    lastUpdate, 
+    notifications, 
+    startDemo, 
+    stopDemo, 
+    clearNotifications 
+  } = useDemoMode();
 
   const { 
     supplierMetrics, 
@@ -52,8 +72,56 @@ const Index = () => {
   };
 
   const handleRefresh = () => {
-    // Force a refresh by updating filters
     setFilters({ ...filters });
+    toast({
+      title: "Data Refreshed",
+      description: "Dashboard data has been updated with latest information."
+    });
+  };
+
+  const resetToDefault = () => {
+    setFilters({
+      region: 'all-regions',
+      supplier: 'all-suppliers',
+      productCategory: 'all-products',
+      timePeriod: 'last-12-months'
+    });
+    toast({
+      title: "View Reset",
+      description: "Dashboard has been reset to default view."
+    });
+  };
+
+  const handleDemoToggle = () => {
+    if (isDemoActive) {
+      stopDemo();
+      toast({
+        title: "Demo Mode Disabled",
+        description: "Real-time simulation has been stopped."
+      });
+    } else {
+      startDemo();
+      toast({
+        title: "Demo Mode Activated",
+        description: "Real-time simulation started - watch for live updates!"
+      });
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Supply Chain Analytics Dashboard',
+        text: 'Check out this comprehensive supply chain optimization dashboard',
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied",
+        description: "Dashboard link has been copied to clipboard."
+      });
+    }
   };
 
   if (error) {
@@ -67,35 +135,107 @@ const Index = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-card-foreground">Supply Chain Analytics Dashboard</h1>
-              <p className="text-muted-foreground">Real-time visibility and optimization insights</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <BarChart3Icon className="h-8 w-8 text-primary" />
-              <span className="text-sm text-muted-foreground">Last updated: 5 minutes ago</span>
+    <>
+      <GuidedTour isOpen={showTour} onClose={() => setShowTour(false)} />
+      
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b border-border bg-card shadow-sm dashboard-header">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-card-foreground">Supply Chain Analytics Dashboard</h1>
+                <div className="flex items-center gap-4 mt-1">
+                  <p className="text-muted-foreground">Real-time visibility and optimization insights</p>
+                  {isDemoActive && (
+                    <Badge variant="secondary" className="animate-pulse">
+                      🔴 Live Demo Mode
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <BarChart3Icon className="h-8 w-8 text-primary" />
+                <div className="text-right">
+                  <span className="text-sm text-muted-foreground block">Last updated: 5 minutes ago</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Button variant="outline" size="sm" onClick={() => setShowTour(true)}>
+                      <HelpCircle className="h-4 w-4 mr-1" />
+                      Tour
+                    </Button>
+                    <Button 
+                      variant={isDemoActive ? "destructive" : "secondary"} 
+                      size="sm" 
+                      onClick={handleDemoToggle}
+                    >
+                      {isDemoActive ? <Square className="h-4 w-4 mr-1" /> : <Play className="h-4 w-4 mr-1" />}
+                      {isDemoActive ? "Stop Demo" : "Demo Mode"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleShare}>
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Share
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/case-study" target="_blank">
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Case Study
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-6 space-y-6">
-        {/* Filters */}
-        <ErrorBoundary>
-          <DashboardFilters 
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onRefresh={handleRefresh}
-          />
-        </ErrorBoundary>
+        <div className="container mx-auto px-6 py-6 space-y-6">
+          {/* Demo notifications */}
+          {notifications.length > 0 && (
+            <div className="space-y-2">
+              {notifications.slice(0, 2).map((notification) => (
+                <div 
+                  key={notification.id}
+                  className={`p-3 rounded-lg border animate-fade-in ${
+                    notification.type === 'success' ? 'bg-success/10 border-success/20 text-success' :
+                    notification.type === 'warning' ? 'bg-warning/10 border-warning/20 text-warning' :
+                    'bg-primary/10 border-primary/20 text-primary'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-sm">{notification.title}</p>
+                      <p className="text-xs opacity-90">{notification.message}</p>
+                    </div>
+                    <span className="text-xs opacity-70">
+                      {notification.timestamp.toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Filters */}
+          <div className="filters-section">
+            <ErrorBoundary>
+              <DashboardFilters 
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onRefresh={handleRefresh}
+              />
+            </ErrorBoundary>
+            
+            {/* Reset View Button */}
+            <div className="flex justify-end mt-2">
+              <Button variant="ghost" size="sm" onClick={resetToDefault}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset View
+              </Button>
+            </div>
+          </div>
+
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 kpi-metrics">
           <MetricCard
             title="Average On-Time Delivery"
             value={kpis ? `${kpis.averageOnTimeDelivery}%` : "--"}
@@ -156,15 +296,15 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Forecasting Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-card-foreground">Predictive Analytics & Forecasting</h2>
-            <Button variant="outline" onClick={exportForecastReport} disabled={forecastLoading}>
-              <Download className="h-4 w-4 mr-2" />
-              Export Forecast Report
-            </Button>
-          </div>
+          {/* Forecasting Section */}
+          <div className="space-y-6 forecasting-section">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-card-foreground">Predictive Analytics & Forecasting</h2>
+              <Button variant="outline" onClick={exportForecastReport} disabled={forecastLoading}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Forecast Report
+              </Button>
+            </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ErrorBoundary>
@@ -188,13 +328,15 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Benchmarking Section */}
-        <ErrorBoundary>
-          <BenchmarkPanel
-            benchmarks={benchmarkData}
-            loading={forecastLoading}
-          />
-        </ErrorBoundary>
+          {/* Benchmarking Section */}
+          <div className="benchmarking-section">
+            <ErrorBoundary>
+              <BenchmarkPanel
+                benchmarks={benchmarkData}
+                loading={forecastLoading}
+              />
+            </ErrorBoundary>
+          </div>
 
         {/* Supplier Performance Table */}
         <ErrorBoundary>
@@ -205,25 +347,28 @@ const Index = () => {
           />
         </ErrorBoundary>
 
-        {/* AI Insights Panel */}
-        <ErrorBoundary>
-          <EnhancedInsightsPanel 
-            insights={forecastInsights}
-            loading={forecastLoading}
-            onExportReport={exportForecastReport}
-          />
-        </ErrorBoundary>
+          {/* AI Insights Panel */}
+          <div className="insights-section">
+            <ErrorBoundary>
+              <EnhancedInsightsPanel 
+                insights={forecastInsights}
+                loading={forecastLoading}
+                onExportReport={exportForecastReport}
+              />
+            </ErrorBoundary>
+          </div>
 
-        {/* Legacy Insights Panel (for comparison) */}
-        <ErrorBoundary>
+          {/* Legacy Insights Panel (for comparison) */}
+          <ErrorBoundary>
           <InsightsPanel 
             insights={insights}
             loading={loading}
             totalSavings={kpis?.totalCostSavings || 210000}
           />
-        </ErrorBoundary>
+          </ErrorBoundary>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
