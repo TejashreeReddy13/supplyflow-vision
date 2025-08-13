@@ -16,7 +16,7 @@ interface DashboardFiltersProps {
   onRefresh: () => void;
 }
 
-export const DashboardFilters = ({ filters, onFiltersChange, onRefresh }: DashboardFiltersProps) => {
+export const DashboardFilters = ({ filters = {}, onFiltersChange, onRefresh }: DashboardFiltersProps) => {
   const handleFilterChange = (key: keyof FilterOptions, value: string) => {
     onFiltersChange({
       ...filters,

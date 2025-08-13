@@ -10,15 +10,15 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { Download } from "lucide-react";
+import { Download, Package } from "lucide-react";
 
 interface InventoryChartProps {
-  data: any[];
+  data?: any[];
   loading?: boolean;
   onExport: () => void;
 }
 
-export const InventoryChart = ({ data, loading, onExport }: InventoryChartProps) => {
+export const InventoryChart = ({ data = [], loading, onExport }: InventoryChartProps) => {
   if (loading) {
     return (
       <Card className="animate-fade-in shadow-card">
@@ -63,8 +63,16 @@ export const InventoryChart = ({ data, loading, onExport }: InventoryChartProps)
         </Button>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+        {(!data || data.length === 0) && !loading ? (
+          <div className="flex items-center justify-center h-80 text-muted-foreground">
+            <div className="text-center">
+              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No inventory data available</p>
+            </div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="demandGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -105,12 +113,15 @@ export const InventoryChart = ({ data, loading, onExport }: InventoryChartProps)
             />
           </AreaChart>
         </ResponsiveContainer>
-        <div className="mt-4 p-3 bg-muted rounded-lg">
+        )}
+        {data && data.length > 0 && (
+          <div className="mt-4 p-3 bg-muted rounded-lg">
           <p className="text-sm text-muted-foreground">
             <strong>Key Insight:</strong> Peak demand periods (June-December) correlate with higher inventory turnover, 
             indicating effective inventory management during seasonal fluctuations.
           </p>
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

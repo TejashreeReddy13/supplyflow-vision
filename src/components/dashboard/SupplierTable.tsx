@@ -24,7 +24,7 @@ const statusStyles = {
   poor: 'bg-destructive text-destructive-foreground',
 };
 
-export const SupplierTable = ({ suppliers, loading, onExport }: SupplierTableProps) => {
+export const SupplierTable = ({ suppliers = [], loading, onExport }: SupplierTableProps) => {
   if (loading) {
     return (
       <Card className="animate-fade-in shadow-card">
@@ -63,7 +63,7 @@ export const SupplierTable = ({ suppliers, loading, onExport }: SupplierTablePro
             </TableRow>
           </TableHeader>
           <TableBody>
-            {suppliers.map((supplier) => (
+            {suppliers && suppliers.length > 0 ? suppliers.map((supplier) => (
               <TableRow key={supplier.supplier_id} className="hover:bg-muted/50">
                 <TableCell className="font-medium">
                   <div>
@@ -86,10 +86,10 @@ export const SupplierTable = ({ suppliers, loading, onExport }: SupplierTablePro
                   </Badge>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : null}
           </TableBody>
         </Table>
-        {suppliers.length === 0 && (
+        {(!suppliers || suppliers.length === 0) && !loading && (
           <div className="text-center py-8 text-muted-foreground">
             No suppliers found matching the current filters.
           </div>

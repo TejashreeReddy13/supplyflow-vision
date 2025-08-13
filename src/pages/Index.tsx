@@ -4,6 +4,7 @@ import { SupplierTable } from "@/components/dashboard/SupplierTable";
 import { InventoryChart } from "@/components/dashboard/InventoryChart";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useSupplyChainData } from "@/hooks/useSupplyChainData";
 import { FilterOptions } from "@/services/analyticsService";
 import { 
@@ -73,11 +74,13 @@ const Index = () => {
 
       <div className="container mx-auto px-6 py-6 space-y-6">
         {/* Filters */}
-        <DashboardFilters 
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          onRefresh={handleRefresh}
-        />
+        <ErrorBoundary>
+          <DashboardFilters 
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onRefresh={handleRefresh}
+          />
+        </ErrorBoundary>
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -113,11 +116,13 @@ const Index = () => {
 
         {/* Charts and Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <InventoryChart 
-            data={inventoryData}
-            loading={loading}
-            onExport={exportInventoryData}
-          />
+          <ErrorBoundary>
+            <InventoryChart 
+              data={inventoryData}
+              loading={loading}
+              onExport={exportInventoryData}
+            />
+          </ErrorBoundary>
           <div className="space-y-6">
             <MetricCard
               title="Supply Chain Health Score"
@@ -140,18 +145,22 @@ const Index = () => {
         </div>
 
         {/* Supplier Performance Table */}
-        <SupplierTable 
-          suppliers={supplierMetrics}
-          loading={loading}
-          onExport={exportSupplierData}
-        />
+        <ErrorBoundary>
+          <SupplierTable 
+            suppliers={supplierMetrics}
+            loading={loading}
+            onExport={exportSupplierData}
+          />
+        </ErrorBoundary>
 
         {/* AI Insights Panel */}
-        <InsightsPanel 
-          insights={insights}
-          loading={loading}
-          totalSavings={kpis?.totalCostSavings || 210000}
-        />
+        <ErrorBoundary>
+          <InsightsPanel 
+            insights={insights}
+            loading={loading}
+            totalSavings={kpis?.totalCostSavings || 210000}
+          />
+        </ErrorBoundary>
       </div>
     </div>
   );

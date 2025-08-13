@@ -46,7 +46,7 @@ const typeIcons = {
   'opportunity': Package,
 };
 
-export const InsightsPanel = ({ insights, loading, totalSavings = 210000 }: InsightsPanelProps) => {
+export const InsightsPanel = ({ insights = [], loading, totalSavings = 210000 }: InsightsPanelProps) => {
   const downloadInsightsReport = () => {
     const reportContent = `
 Supply Chain Analytics - Insights Report
@@ -118,7 +118,7 @@ RECOMMENDATIONS
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {insights.map((insight) => {
+        {insights && insights.length > 0 ? insights.map((insight) => {
           const Icon = typeIcons[insight.type];
           return (
             <div 
@@ -148,7 +148,11 @@ RECOMMENDATIONS
               </div>
             </div>
           );
-        })}
+        }) : !loading && (
+          <div className="text-center py-8 text-muted-foreground">
+            No insights available at this time.
+          </div>
+        )}
         
         <div className="mt-6 p-4 bg-gradient-primary rounded-lg text-primary-foreground">
           <h4 className="font-semibold mb-2">Total Potential Savings</h4>
